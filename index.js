@@ -10,12 +10,12 @@ const jsdom = require('jsdom');
 
 const catalog_url = 'https://hexo.io/themes/';
 
-function fetchHTML(url) {
+function fetchURL(url) {
     // https://nodejs.org/docs/latest/api/http.html#httpgeturl-options-callback
     return new Promise((resolve, _reject) => {
         https.get(url, res => {
             assert.strictEqual(res.statusCode, 200);
-            assert.strictEqual((res.headers['content-type'] || '').toLowerCase(), 'text/html; charset=UTF-8'.toLowerCase());
+            assert(/^text\/(html|plain); charset=utf-8$/i.test(res.headers['content-type'] || ''));
             res.setEncoding('utf8');
             let rawData = '';
             res.on('data', chunk => rawData += chunk);
@@ -23,7 +23,7 @@ function fetchHTML(url) {
                 resolve(rawData);
             });
         }).on('error', err => {
-            console.error('fetchHTML() failed: ' + err.message);
+            console.error('fetchURL() failed: ' + err.message);
             process.exit(2);
         });
     });
@@ -88,7 +88,7 @@ function analyzeGitHub(dom) {
 
 function main() {
     const limit = process.argv[2] || 1;
-    fetchHTML(catalog_url)
+    fetchURL(catalog_url)
         .then(html => parseHTML(html))
         .then(dom => analyzeCatalog(dom))
         .then(themes => {
@@ -98,7 +98,7 @@ function main() {
             const targets = names.filter(name => themes[name].startsWith('https://github.com/')).slice(0, limit);
             return Promise.all(targets.map(name => new Promise((resolve, _reject) => {
                 const repository_url = themes[name];
-                fetchHTML(repository_url)
+                fetchURL(repository_url)
                     .then(html => parseHTML(html))
                     .then(dom => analyzeGitHub(dom))
                     .then(github_info => {
@@ -110,6 +110,17 @@ function main() {
         .then(themes => {
             console.debug(themes);
             console.log(`${themes.length} themes are found in GitHub`);
+            return Promise.all(themes.map(theme => new Promise((resolve, _reject) => {
+                fetchURL(theme.raw_url)
+                    .then(text => {
+                        theme.config_text = text.split('\n').slice(0, 5);
+                        resolve(theme);
+                    });
+            })));
+        })
+        .then(themes => {
+            console.debug(themes);
+            console.log('Completed');
         }).catch(err => {
             console.error(err);
             process.exit(2);
