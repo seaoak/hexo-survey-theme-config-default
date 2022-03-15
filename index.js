@@ -94,6 +94,7 @@ function analyzeGitHub(dom) {
 }
 
 function loadThemeConfig(theme) {
+    if (!theme.is_target) return Promise.resolve(theme);
     return new Promise((resolve, _reject) => {
         fetchURL(theme.raw_url)
             .then(text => {
@@ -124,21 +125,23 @@ function main() {
         .then(dom => analyzeCatalog(dom))
         .then(themes => {
             console.log(`${themes.length} themes are found in catalog`);
-            const targets = themes.filter(theme => theme.repository_url.startsWith('https://github.com/')).slice(0, limit);
-            return Promise.all(targets.map(theme => new Promise((resolve, _reject) => {
-                const { name, repository_url } = theme;
+            themes.forEach(theme => theme.is_target = false);
+            themes.filter(theme => theme.repository_url.startsWith('https://github.com/')).slice(0, limit).forEach(theme => theme.is_target = true);
+            return Promise.all(themes.map(theme => new Promise((resolve, _reject) => {
+                const { name, repository_url, is_target } = theme;
+                if (!is_target) return resolve(theme);
                 fetchURL(repository_url)
                     .then(html => parseHTML(html))
                     .then(dom => analyzeGitHub(dom))
                     .then(github_info => {
-                        const { filename, file_url, raw_url } = github_info;
-                        resolve({ name, repository_url, filename, file_url, raw_url });
+                        Object.assign(theme, github_info);
+                        resolve(theme);
                     });
             })));
         })
         .then(themes => {
             console.debug(themes);
-            console.log(`${themes.length} themes are found in GitHub`);
+            console.log(`${themes.filter(theme => theme.is_target).length} themes are found in GitHub`);
             return Promise.all(themes.map(theme => loadThemeConfig(theme)));
         })
         .then(themes => {
