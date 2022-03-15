@@ -7,6 +7,7 @@ const process = require('process');
 const https = require('https');
 
 const jsdom = require('jsdom');
+const YAML = require('yaml');
 
 const catalog_url = 'https://hexo.io/themes/';
 
@@ -86,6 +87,30 @@ function analyzeGitHub(dom) {
     });
 }
 
+function loadThemeConfig(theme) {
+    return new Promise((resolve, _reject) => {
+        fetchURL(theme.raw_url)
+            .then(text => {
+                theme.config_text = text;
+                if (theme.filename.endsWith('.yml')) {
+                    try {
+                        // https://www.npmjs.com/package/yaml
+                        theme.config = YAML.parse(text);
+                    } catch (e) {
+                        console.debug(e);
+                        console.err('can not parse YAML file: ' + theme.raw_url);
+                        process.exit(2);
+                    }
+                } else if (theme.filename.endsWith('.json')) {
+                    assert(false); // not implemented yet
+                } else {
+                    assert(false); // never reach
+                }
+                resolve(theme);
+            });
+    });
+}
+
 function main() {
     const limit = process.argv[2] || 1;
     fetchURL(catalog_url)
@@ -110,13 +135,7 @@ function main() {
         .then(themes => {
             console.debug(themes);
             console.log(`${themes.length} themes are found in GitHub`);
-            return Promise.all(themes.map(theme => new Promise((resolve, _reject) => {
-                fetchURL(theme.raw_url)
-                    .then(text => {
-                        theme.config_text = text.split('\n').slice(0, 5);
-                        resolve(theme);
-                    });
-            })));
+            return Promise.all(themes.map(theme => loadThemeConfig(theme)));
         })
         .then(themes => {
             console.debug(themes);

@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/seaoak/hexo-survey-theme-config-default#readme",
   "dependencies": {
-    "jsdom": "^19.0.0"
+    "jsdom": "^19.0.0",
+    "yaml": "^1.10.2"
   }
 }
