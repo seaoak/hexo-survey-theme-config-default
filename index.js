@@ -87,6 +87,7 @@ function analyzeGitHub(dom) {
 }
 
 function main() {
+    const limit = process.argv[2] || 1;
     fetchHTML(catalog_url)
         .then(html => parseHTML(html))
         .then(dom => analyzeCatalog(dom))
@@ -94,7 +95,7 @@ function main() {
             const names = Object.keys(themes);
             console.log(`${names.length} themes are found in catalog`);
             names.sort();
-            const targets = names.filter(name => themes[name].startsWith('https://github.com/')).slice(0, 1);
+            const targets = names.filter(name => themes[name].startsWith('https://github.com/')).slice(0, limit);
             return Promise.all(targets.map(name => new Promise((resolve, _reject) => {
                 const repository_url = themes[name];
                 fetchHTML(repository_url)
