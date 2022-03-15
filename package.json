@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/seaoak/hexo-survey-theme-config-default/issues"
   },
-  "homepage": "https://github.com/seaoak/hexo-survey-theme-config-default#readme"
+  "homepage": "https://github.com/seaoak/hexo-survey-theme-config-default#readme",
+  "dependencies": {
+    "jsdom": "^19.0.0"
+  }
 }
