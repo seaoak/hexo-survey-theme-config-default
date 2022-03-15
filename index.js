@@ -11,6 +11,14 @@ const YAML = require('yaml');
 
 const catalog_url = 'https://hexo.io/themes/';
 
+function isUnique(arr) {
+    const table = {};
+    arr.forEach(x => {
+        table[x] = (table[x] || 0) + 1;
+    });
+    return Object.values(table).every(count => count === 1);
+}
+
 function fetchURL(url) {
     // https://nodejs.org/docs/latest/api/http.html#httpgeturl-options-callback
     return new Promise((resolve, _reject) => {
@@ -43,23 +51,21 @@ function analyzeCatalog(dom) {
     return new Promise((resolve, _reject) => {
         const list = Array.from(dom.querySelectorAll('#plugin-list > li'));
         assert(list.length > 0);
-        const table = {};
-        list.slice().forEach(elem => {
+        const themes = list.map(elem => {
             const anchors = elem.querySelectorAll('a.plugin-name');
             assert.strictEqual(anchors.length, 1);
             const anchor = anchors[0];
             const name = anchor.textContent;
             assert(name);
-            const url = anchor.href;
-            assert(url);
-            assert(url.startsWith('https://'));
-            console.debug(`${name} ${url}`);
-            assert(!table[name]); // not twice
-            table[name] = url;
+            const repository_url = anchor.href;
+            assert(repository_url);
+            assert(repository_url.startsWith('https://'));
+            console.debug(`${name} ${repository_url}`);
+            return { name, repository_url };
         });
-        Object.freeze(table); // just in case
-        console.debug(table);
-        resolve(table);
+        assert(isUnique(themes.map(theme => theme.name)));
+        themes.sort((a, b) => a.name.localeCompare(b.name));
+        resolve(themes);
     });
 }
 
@@ -117,12 +123,10 @@ function main() {
         .then(html => parseHTML(html))
         .then(dom => analyzeCatalog(dom))
         .then(themes => {
-            const names = Object.keys(themes);
-            console.log(`${names.length} themes are found in catalog`);
-            names.sort();
-            const targets = names.filter(name => themes[name].startsWith('https://github.com/')).slice(0, limit);
-            return Promise.all(targets.map(name => new Promise((resolve, _reject) => {
-                const repository_url = themes[name];
+            console.log(`${themes.length} themes are found in catalog`);
+            const targets = themes.filter(theme => theme.repository_url.startsWith('https://github.com/')).slice(0, limit);
+            return Promise.all(targets.map(theme => new Promise((resolve, _reject) => {
+                const { name, repository_url } = theme;
                 fetchURL(repository_url)
                     .then(html => parseHTML(html))
                     .then(dom => analyzeGitHub(dom))
