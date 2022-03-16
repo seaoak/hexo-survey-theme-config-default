@@ -266,7 +266,7 @@ function main() {
     const limit = (() => {
         const cmd = process.argv[2] || '';
         if (cmd === 'run') {
-            if (process.argv.length === 3) return 1;
+            if (process.argv.length === 3) return undefined; // no limit
             if ((process.argv.length === 4) && /^[1-9][0-9]*$/.test(process.argv[3])) return Number(process.argv[3]);
             usage();
         }
