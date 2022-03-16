@@ -92,7 +92,7 @@ function fetchURL(url) {
     // https://nodejs.org/docs/latest/api/http.html#httpgeturl-options-callback
     const cached_data = cache.query(url);
     if (cached_data) return Promise.resolve(cached_data);
-    return new Promise((resolve, _reject) => {
+    return new Promise((resolve, reject) => {
         console.debug(`fetch URL: ${url}`);
         https.get(url, {agent: https_agent}, res => {
             console.debug(`get HTTP response for: ${url}`);
@@ -108,6 +108,14 @@ function fetchURL(url) {
                     });
                 res.on('data', () => {}); // discard
                 res.on('end', () => {}); // discard
+                return;
+            }
+            if (res.statusCode === 404) {
+                // "404 Not Found"
+                console.debug(`404 Not Found: ${url}`);
+                res.on('data', () => {}); // discard
+                res.on('end', () => {}); // discard
+                reject(null);
                 return;
             }
             assert.strictEqual(res.statusCode, 200);
@@ -188,8 +196,12 @@ function loadThemeConfig(theme) {
         fetchURL(theme.raw_url)
             .then(text => {
                 theme.config_text = text;
-                resolve(theme);
-            });
+            })
+            .catch(() => {
+                console.warn(`WARNING: can not load theme config file: ${theme.raw_url}`);
+                theme.is_error = true;
+            })
+            .finally(() => resolve(theme));
     });
 }
 
@@ -266,6 +278,10 @@ function main() {
     })();
     cache.load();
     fetchURL(catalog_url)
+        .catch(() => {
+            console.error(`ERROR: can not load catalog page: ${catalog_url}`);
+            process.exit(2);
+        })
         .then(html => parseHTML(html))
         .then(dom => analyzeCatalog(dom))
         .then(themes => {
@@ -284,8 +300,12 @@ function main() {
                             console.warn(`WARNING: config file is not found in GitHub repository: ${repository_url}`);
                             theme.is_error = true;
                         }
-                        resolve(theme);
-                    });
+                    })
+                    .catch(() => {
+                        console.warn(`WARNING: can not load GitHub page: ${repository_url}`);
+                        theme.is_error = true;
+                    })
+                    .finally(() => resolve(theme));
             })));
         })
         .then(themes => {
