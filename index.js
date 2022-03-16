@@ -216,7 +216,8 @@ function main() {
             return Promise.all(themes.map(theme => loadThemeConfig(theme)));
         })
         .then(themes => {
-            console.debug(themes);
+            console.debug(themes.map(theme => Object.assign({}, theme, {config_text: '...'})));
+            console.log(`${themes.filter(theme => theme.config).length} themes are processing for analysis`);
             cache.save();
             console.log('Completed');
         }).catch(err => {
