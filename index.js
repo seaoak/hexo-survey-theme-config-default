@@ -283,7 +283,6 @@ function main() {
                         } else {
                             console.warn(`WARNING: config file is not found in GitHub repository: ${repository_url}`);
                             theme.is_error = true;
-                            theme.is_target = false;
                         }
                         resolve(theme);
                     });
@@ -291,6 +290,7 @@ function main() {
         })
         .then(themes => {
             console.log(`${themes.filter(theme => theme.is_target).length} themes are found in GitHub`);
+            console.log(`${themes.filter(theme => theme.raw_url).length} themes have default config file`);
             cache.save();
             return Promise.all(themes.map(theme => loadThemeConfig(theme)));
         })
@@ -302,7 +302,9 @@ function main() {
         .then(themes => {
             console.log('----------------------------------------------------------------------');
             console.log(`${themes.length} themes are found in catalog`);
-            console.log(`${themes.filter(theme => theme.raw_url).length} themes are downloaded from GitHub`);
+            console.log(`${themes.filter(theme => theme.is_target).length} themes are found in GitHub`);
+            console.log(`${themes.filter(theme => theme.raw_url).length} themes have default config file`);
+            console.log(`${themes.filter(theme => theme.config_text).length} themes are downloaded from GitHub`);
             console.log(`${themes.filter(theme => theme.config).length} themes are processing for analysis`);
             outputSummary(themes);
             cache.save();
