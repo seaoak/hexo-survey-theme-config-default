@@ -90,7 +90,7 @@ function fetchURL(url) {
                 resolve(rawData);
             });
         }).on('error', err => {
-            console.error('fetchURL() failed: ' + err.message);
+            console.error('ERROR: fetchURL() failed: ' + err.message);
             process.exit(2);
         });
     });
@@ -163,7 +163,7 @@ function loadThemeConfig(theme) {
                         theme.config = YAML.parse(text);
                     } catch (e) {
                         console.debug(e);
-                        console.warn('can not parse YAML file: ' + theme.raw_url);
+                        console.warn('WARNING: can not parse YAML file: ' + theme.raw_url);
                         theme.is_error = e;
                     }
                 } else if (theme.filename.endsWith('.json')) {
@@ -221,6 +221,7 @@ function main() {
             console.log('Completed');
         }).catch(err => {
             console.error(err);
+            console.error('ERROR: fatal');
             process.exit(2);
         });
 }
