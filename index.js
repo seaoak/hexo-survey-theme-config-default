@@ -33,6 +33,7 @@ function is_property_overwritable(obj, name) {
     if (!obj) return true; // skip
     const target = obj[name];
     if (target === undefined) return true; // OK if not defined
+    if (target === null) return true; // OK if really empty
     if (Array.isArray(target)) return target.length === 0;
     if (typeof target === 'object') return Object.keys(target).every(x => !x);
     if (typeof target === 'string') return true; // OK if single string
