@@ -86,7 +86,7 @@ const cache = (() => {
     return Object.freeze({ store, query, save, load, clean });
 })();
 
-const https_agent = new https.Agent({keepAlive: true, maxTotalSockets: 1}); // throttling
+const https_agent = new https.Agent({keepAlive: true, maxSockets: 1, maxTotalSockets: 8}); // throttling
 
 function fetchURL(url) {
     // https://nodejs.org/docs/latest/api/http.html#httpgeturl-options-callback
