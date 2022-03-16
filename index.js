@@ -163,8 +163,8 @@ function loadThemeConfig(theme) {
                         theme.config = YAML.parse(text);
                     } catch (e) {
                         console.debug(e);
-                        console.error('can not parse YAML file: ' + theme.raw_url);
-                        process.exit(2);
+                        console.warn('can not parse YAML file: ' + theme.raw_url);
+                        theme.is_error = e;
                     }
                 } else if (theme.filename.endsWith('.json')) {
                     assert(false); // not implemented yet
