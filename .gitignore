@@ -113,4 +113,4 @@ dist
 .tern-port
 
 survey.code-workspace
-cache.json
+cache.json*
