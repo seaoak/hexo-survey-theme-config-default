@@ -34,6 +34,7 @@ const cache = (() => {
     function store(key, value) {
         assert(key);
         assert.notStrictEqual(value, undefined);
+        assert(value);
         storage[key] = value;
     }
 
