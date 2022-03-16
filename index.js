@@ -152,7 +152,7 @@ function analyzeGitHub(dom) {
 }
 
 function loadThemeConfig(theme) {
-    if (!theme.is_target) return Promise.resolve(theme);
+    if (!theme.raw_url) return Promise.resolve(theme); // skip
     return new Promise((resolve, _reject) => {
         fetchURL(theme.raw_url)
             .then(text => {
