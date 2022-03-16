@@ -197,7 +197,6 @@ function main() {
         .then(dom => analyzeCatalog(dom))
         .then(themes => {
             console.log(`${themes.length} themes are found in catalog`);
-            themes.forEach(theme => theme.is_target = false);
             themes.filter(theme => theme.repository_url.startsWith('https://github.com/')).slice(0, limit).forEach(theme => theme.is_target = true);
             return Promise.all(themes.map(theme => new Promise((resolve, _reject) => {
                 const { name, repository_url, is_target } = theme;
