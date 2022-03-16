@@ -86,13 +86,15 @@ const cache = (() => {
     return Object.freeze({ store, query, save, load, clean });
 })();
 
+const https_agent = new https.Agent({maxTotalSockets: 4}); // throttling
+
 function fetchURL(url) {
     // https://nodejs.org/docs/latest/api/http.html#httpgeturl-options-callback
     const cached_data = cache.query(url);
     if (cached_data) return Promise.resolve(cached_data);
     return new Promise((resolve, _reject) => {
         console.debug(`fetch URL: ${url}`);
-        https.get(url, res => {
+        https.get(url, {agent: https_agent}, res => {
             console.debug(`get HTTP response for: ${url}`);
             if (res.statusCode === 301) {
                 // "301 Moved Permanently"
