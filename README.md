@@ -66,6 +66,8 @@ CACHE: 680 entries are saved to ./cache.json
 Completed
 ```
 
+(at 2022/Mar/16)
+
 ## So what?
 
 This tool shows that there are many themes that default config file contains default values for `menu` or `widgets`.
