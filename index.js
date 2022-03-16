@@ -188,21 +188,28 @@ function loadThemeConfig(theme) {
         fetchURL(theme.raw_url)
             .then(text => {
                 theme.config_text = text;
-                if (theme.filename.endsWith('.yml')) {
-                    try {
-                        // https://www.npmjs.com/package/yaml
-                        theme.config = YAML.parse(text);
-                    } catch (e) {
-                        console.warn('WARNING: can not parse YAML file: ' + theme.raw_url);
-                        theme.is_error = e;
-                    }
-                } else if (theme.filename.endsWith('.json')) {
-                    assert(false); // not implemented yet
-                } else {
-                    assert(false); // never reach
-                }
                 resolve(theme);
             });
+    });
+}
+
+function parseThemeConfig(theme) {
+    if (!theme.config_text) return Promise.resolve(theme); // skip
+    return new Promise((resolve, _reject) => {
+        if (theme.filename.endsWith('.yml')) {
+            try {
+                // https://www.npmjs.com/package/yaml
+                theme.config = YAML.parse(theme.config_text);
+            } catch (e) {
+                console.warn('WARNING: can not parse YAML file: ' + theme.raw_url);
+                theme.is_error = e;
+            }
+        } else if (theme.filename.endsWith('.json')) {
+            assert(false); // not implemented yet
+        } else {
+            assert(false); // never reach
+        }
+        resolve(theme);
     });
 }
 
@@ -286,6 +293,11 @@ function main() {
             console.log(`${themes.filter(theme => theme.is_target).length} themes are found in GitHub`);
             cache.save();
             return Promise.all(themes.map(theme => loadThemeConfig(theme)));
+        })
+        .then(themes => {
+            console.log(`${themes.filter(theme => theme.config_text).length} themes are downloaded from GitHub`);
+            cache.save();
+            return Promise.all(themes.map(theme => parseThemeConfig(theme)));
         })
         .then(themes => {
             console.log('----------------------------------------------------------------------');
