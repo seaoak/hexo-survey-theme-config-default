@@ -75,6 +75,8 @@ const cache = (() => {
 
 function fetchURL(url) {
     // https://nodejs.org/docs/latest/api/http.html#httpgeturl-options-callback
+    const cached_data = cache.query(url);
+    if (cached_data) return Promise.resolve(cached_data);
     return new Promise((resolve, _reject) => {
         https.get(url, res => {
             assert.strictEqual(res.statusCode, 200);
@@ -83,6 +85,7 @@ function fetchURL(url) {
             let rawData = '';
             res.on('data', chunk => rawData += chunk);
             res.on('end', () => {
+                cache.store(url, rawData);
                 resolve(rawData);
             });
         }).on('error', err => {
@@ -187,6 +190,7 @@ function main() {
         }
         usage();
     })();
+    cache.load();
     fetchURL(catalog_url)
         .then(html => parseHTML(html))
         .then(dom => analyzeCatalog(dom))
@@ -213,6 +217,7 @@ function main() {
         })
         .then(themes => {
             console.debug(themes);
+            cache.save();
             console.log('Completed');
         }).catch(err => {
             console.error(err);
