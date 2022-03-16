@@ -91,7 +91,23 @@ function fetchURL(url) {
     const cached_data = cache.query(url);
     if (cached_data) return Promise.resolve(cached_data);
     return new Promise((resolve, _reject) => {
+        console.debug(`fetch URL: ${url}`);
         https.get(url, res => {
+            console.debug(`get HTTP response for: ${url}`);
+            if (res.statusCode === 301) {
+                // "301 Moved Permanently"
+                const new_url = res.headers['location'];
+                assert(new_url);
+                console.debug(`HTTP redirect: ${url} => ${new_url}`);
+                fetchURL(new_url)
+                    .then(rawData => {
+                        cache.store(url, rawData);
+                        resolve(rawData);
+                    });
+                res.on('data', () => {}); // discard
+                res.on('end', () => {}); // discard
+                return;
+            }
             assert.strictEqual(res.statusCode, 200);
             assert(/^text\/(html|plain); charset=utf-8$/i.test(res.headers['content-type'] || ''));
             res.setEncoding('utf8');
