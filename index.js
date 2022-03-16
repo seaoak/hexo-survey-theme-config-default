@@ -287,6 +287,9 @@ function main() {
             return Promise.all(themes.map(theme => loadThemeConfig(theme)));
         })
         .then(themes => {
+            console.log('----------------------------------------------------------------------');
+            console.log(`${themes.length} themes are found in catalog`);
+            console.log(`${themes.filter(theme => theme.raw_url).length} themes are downloaded from GitHub`);
             console.log(`${themes.filter(theme => theme.config).length} themes are processing for analysis`);
             outputSummary(themes);
             cache.save();
