@@ -46,7 +46,6 @@ const cache = (() => {
     function store(key, value) {
         assert(key);
         assert.notStrictEqual(value, undefined);
-        assert(value);
         storage[key] = value;
     }
 
@@ -92,6 +91,7 @@ function fetchURL(url) {
     // https://nodejs.org/docs/latest/api/http.html#httpgeturl-options-callback
     const cached_data = cache.query(url);
     if (cached_data) return Promise.resolve(cached_data);
+    if (cached_data === null) return Promise.reject(null);
     return new Promise((resolve, reject) => {
         console.debug(`fetch URL: ${url}`);
         https.get(url, {agent: https_agent}, res => {
@@ -115,6 +115,7 @@ function fetchURL(url) {
                 console.debug(`404 Not Found: ${url}`);
                 res.on('data', () => {}); // discard
                 res.on('end', () => {}); // discard
+                cache.store(url, null);
                 reject(null);
                 return;
             }
