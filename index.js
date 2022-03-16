@@ -142,15 +142,17 @@ function analyzeGitHub(dom) {
     return new Promise((resolve, _reject) => {
         const divElem = dom.querySelectorAll('.Box .Details')[1];
         assert(divElem);
-        const { filename, file_url } =
+        const targets =
             Array.from(divElem.querySelectorAll('a.Link--primary'))
                 .filter(elem => /^_config\.(yml|json)$/.test(elem.textContent))
-                .reduce((acc, elem) => {
-                    assert(!acc); // not twice
+                .map(elem => {
                     const filename = elem.textContent;
                     const file_url = elem.href;
                     return { filename, file_url };
-                }, null);
+                });
+        if (targets.length === 0) return resolve(null); // not found
+        assert.strictEqual(targets.length, 1);
+        const { filename, file_url } = targets[0];
         const raw_url =
             file_url.replace('https://github.com/', '/') // maybe not necessary (relative URL)
                 .replace(/^[/]/, 'https://raw.githubusercontent.com/')
@@ -252,7 +254,13 @@ function main() {
                     .then(html => parseHTML(html))
                     .then(dom => analyzeGitHub(dom))
                     .then(github_info => {
-                        Object.assign(theme, github_info);
+                        if (github_info) {
+                            Object.assign(theme, github_info);
+                        } else {
+                            console.warn(`WARNING: config file is not found in GitHub repository: ${repository_url}`);
+                            theme.is_error = true;
+                            theme.is_target = false;
+                        }
                         resolve(theme);
                     });
             })));
@@ -268,6 +276,7 @@ function main() {
             outputSummary(themes);
             cache.save();
             console.log('Completed');
+            process.exit(0);
         }).catch(err => {
             console.error(err);
             console.error('ERROR: fatal');
