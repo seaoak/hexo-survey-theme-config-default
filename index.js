@@ -28,6 +28,17 @@ function isUnique(arr) {
     return Object.values(table).every(count => count === 1);
 }
 
+function is_property_overwritable(obj, name) {
+    // whether it can be overwrited with hexo-util/deepMerge
+    if (!obj) return true; // skip
+    const target = obj[name];
+    if (target === undefined) return true; // OK if not defined
+    if (Array.isArray(target)) return target.length === 0;
+    if (typeof target === 'object') return Object.keys(target).every(x => !x);
+    if (typeof target === 'string') return true; // OK if single string
+    return true; // OK if simple value
+}
+
 const cache = (() => {
     const storage = {};
 
@@ -176,6 +187,42 @@ function loadThemeConfig(theme) {
     });
 }
 
+function rule_menu_should_be_empty(theme) {
+    return is_property_overwritable(theme.config, 'menu');
+}
+
+function rule_nav_should_be_empty(theme) {
+    return is_property_overwritable(theme.config, 'nav');
+}
+
+function rule_widgets_should_be_empty(theme) {
+    return is_property_overwritable(theme.config, 'widgets');
+}
+
+function rule_links_should_be_empty(theme) {
+    return is_property_overwritable(theme.config, 'links');
+}
+
+const rules = [
+    rule_menu_should_be_empty,
+    rule_nav_should_be_empty,
+    rule_widgets_should_be_empty,
+    rule_links_should_be_empty,
+];
+
+function outputSummary(themes) {
+    const total = themes.length;
+    const targets = themes.filter(theme => theme.config);
+    const table = rules.map(rule => {
+        const label = rule.name.replace(/^rule_/, '');
+        const violated = targets.filter(theme => !rule(theme)).length;
+        const checked = targets.length;
+        const ratio = `${Number(violated / checked * 100).toFixed(1)}%`;
+        return { label, violated, checked, ratio };
+    });
+    console.table(table, ['label', 'violated', 'checked', 'ratio']);
+}
+
 function main() {
     const limit = (() => {
         const cmd = process.argv[2] || '';
@@ -218,6 +265,7 @@ function main() {
         .then(themes => {
             console.debug(themes.map(theme => Object.assign({}, theme, {config_text: '...'})));
             console.log(`${themes.filter(theme => theme.config).length} themes are processing for analysis`);
+            outputSummary(themes);
             cache.save();
             console.log('Completed');
         }).catch(err => {
