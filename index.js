@@ -284,6 +284,7 @@ function main() {
         })
         .then(themes => {
             console.log(`${themes.filter(theme => theme.is_target).length} themes are found in GitHub`);
+            cache.save();
             return Promise.all(themes.map(theme => loadThemeConfig(theme)));
         })
         .then(themes => {
