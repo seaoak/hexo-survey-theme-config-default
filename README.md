@@ -23,6 +23,18 @@ Related Issue in "Landscape" theme (the default theme of Hexo):
 - Override the theme settings ・ Issue #102 ・ hexojs/hexo-theme-landscape   
   https://github.com/hexojs/hexo-theme-landscape/issues/102
 
+## How it works
+
+ 1. Fetch HTML file of the Hexo theme catalog page   
+    https://hexo.io/themes/
+ 2. Parse HTML and extract URL of GitHub repository for each theme
+ 3. Fetch HTML file of GitHub repository for each theme
+ 4. Parse HTML and extract URL of default config file `_config.yml`
+ 5. Fetch `_config.yml` from GitHub
+ 6. Parse YAML file and convert to JavaScript object
+ 7. Check the object whtether it has wrong properties
+ 8. Summarize totals and output as a table
+
 ## How to use
 
 ```
