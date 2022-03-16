@@ -2,12 +2,15 @@
 x
 xx
 xxx
+x.*
 y
 yy
 yyy
+y.*
 z
 zz
 zzz
+z.*
 logs
 *.log
 npm-debug.log*
