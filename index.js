@@ -10,6 +10,14 @@ const jsdom = require('jsdom');
 const YAML = require('yaml');
 
 const catalog_url = 'https://hexo.io/themes/';
+const cache_filename = './cache.json';
+
+function usage() {
+    console.log('Usage:');
+    console.log('    node index.js run [limit]');
+    console.log('    node index.js clean');
+    process.exit(1);
+}
 
 function isUnique(arr) {
     const table = {};
@@ -18,6 +26,35 @@ function isUnique(arr) {
     });
     return Object.values(table).every(count => count === 1);
 }
+
+const cache = (() => {
+    const storage = {};
+
+    function store(key, value) {
+        assert(key);
+        assert.notStrictEqual(value, undefined);
+        storage[key] = value;
+    }
+
+    function query(key) {
+        assert(key);
+        return storage[key];
+    }
+
+    function save() {
+        assert(false); // not implemented yet
+    }
+
+    function load() {
+        assert(false); // not implemented yet
+    }
+
+    function clean() {
+        assert(false); // not implemented yet
+    }
+
+    return Object.freeze({ store, query, save, load, clean });
+})();
 
 function fetchURL(url) {
     // https://nodejs.org/docs/latest/api/http.html#httpgeturl-options-callback
@@ -119,7 +156,20 @@ function loadThemeConfig(theme) {
 }
 
 function main() {
-    const limit = process.argv[2] || 1;
+    const limit = (() => {
+        const cmd = process.argv[2] || '';
+        if (cmd === 'run') {
+            if (process.argv.length === 3) return 1;
+            if ((process.argv.length === 4) && /^[1-9][0-9]*$/.test(process.argv[3])) return Number(process.argv[3]);
+            usage();
+        }
+        if (cmd === 'clean') {
+            if (process.argv.length !== 3) usage();
+            cache.clean();
+            process.exit(0);
+        }
+        usage();
+    })();
     fetchURL(catalog_url)
         .then(html => parseHTML(html))
         .then(dom => analyzeCatalog(dom))
