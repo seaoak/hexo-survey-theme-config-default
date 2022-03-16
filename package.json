@@ -1,6 +1,6 @@
 {
   "name": "hexo-survey-theme-config-default",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A tool for Hexo developers",
   "main": "index.js",
   "scripts": {
