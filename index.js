@@ -3,6 +3,7 @@
 'use strict';
 
 const assert = require('assert').strict;
+const fs = require('fs');
 const process = require('process');
 const https = require('https');
 
@@ -42,15 +43,31 @@ const cache = (() => {
     }
 
     function save() {
-        assert(false); // not implemented yet
+        assert.notEqual(Object.keys(storage).length, 0, 'CACHE: save(): no content');
+        const data = JSON.stringify(storage);
+        fs.writeFileSync(cache_filename, data);
+        console.info(`CACHE: ${Object.keys(storage).length} entries are saved to ${cache_filename}`);
     }
 
     function load() {
-        assert(false); // not implemented yet
+        assert.equal(Object.keys(storage).length, 0, 'CACHE: load(): contents already exist');
+        if (!fs.existsSync(cache_filename)) {
+            console.info(`CACHE: cache file does not exist: ${cache_filename}`);
+            return;
+        }
+        const data = fs.readFileSync(cache_filename, {encoding: 'utf8'});
+        assert(data);
+        Object.assign(storage, JSON.parse(data));
+        console.info(`CACHE: ${Object.keys(storage).length} entries are loaded from ${cache_filename}`);
     }
 
     function clean() {
-        assert(false); // not implemented yet
+        if (!fs.existsSync(cache_filename)) {
+            console.info(`CACHE: no cache file: ${cache_filename}`);
+            return;
+        }
+        fs.unlinkSync(cache_filename);
+        console.info(`CACHE: cache file is removed: ${cache_filename}`);
     }
 
     return Object.freeze({ store, query, save, load, clean });
