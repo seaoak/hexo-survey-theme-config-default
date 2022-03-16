@@ -159,7 +159,6 @@ function analyzeGitHub(dom) {
                 .replace('/blob/', '/');
         const result = { filename, file_url, raw_url };
         Object.freeze(result); // just in case
-        console.debug(result);
         resolve(result);
     });
 }
@@ -175,7 +174,6 @@ function loadThemeConfig(theme) {
                         // https://www.npmjs.com/package/yaml
                         theme.config = YAML.parse(text);
                     } catch (e) {
-                        console.debug(e);
                         console.warn('WARNING: can not parse YAML file: ' + theme.raw_url);
                         theme.is_error = e;
                     }
@@ -266,12 +264,10 @@ function main() {
             })));
         })
         .then(themes => {
-            console.debug(themes);
             console.log(`${themes.filter(theme => theme.is_target).length} themes are found in GitHub`);
             return Promise.all(themes.map(theme => loadThemeConfig(theme)));
         })
         .then(themes => {
-            console.debug(themes.map(theme => Object.assign({}, theme, {config_text: '...'})));
             console.log(`${themes.filter(theme => theme.config).length} themes are processing for analysis`);
             outputSummary(themes);
             cache.save();
